@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="main.js" defer></script>
+</head>
+<body>
+    <div class="background-animation">
+        <canvas id="mathAnimation"></canvas>
+    </div>
+    <div class="calculator-container">
+        <div class="calculator">
+            <div class="calculator-header">
+                <div class="toggle-container">
+                    <span class="toggle-label">Standard</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="calculator-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Scientific</span>
+                </div>
+            </div>
+            <div class="display">
+                <div class="previous-operand" id="previous-operand"></div>
+                <div class="current-operand" id="current-operand">0</div>
+            </div>
+            
+            <!-- Scientific Calculator Buttons (Hidden by Default) -->
+            <div class="scientific-buttons">
+                <button class="scientific" onclick="calculator.calculateTrigFunction('sin')">sin</button>
+                <button class="scientific" onclick="calculator.calculateTrigFunction('cos')">cos</button>
+                <button class="scientific" onclick="calculator.calculateTrigFunction('tan')">tan</button>
+                <button class="scientific" onclick="calculator.calculateFunction('log')">log</button>
+                <button class="scientific" onclick="calculator.calculateFunction('ln')">ln</button>
+                <button class="scientific" onclick="calculator.power('2')">x²</button>
+                <button class="scientific" onclick="calculator.power('3')">x³</button>
+                <button class="scientific" onclick="calculator.power('y')">xʸ</button>
+                <button class="scientific" onclick="calculator.calculateFunction('sqrt')">√</button>
+                <button class="scientific" onclick="calculator.calculateFunction('cbrt')">∛</button>
+                <button class="scientific" onclick="calculator.calculateConstant('π')">π</button>
+                <button class="scientific" onclick="calculator.calculateConstant('e')">e</button>
+                <button class="scientific" onclick="calculator.factorial()">x!</button>
+                <button class="scientific" onclick="calculator.inverse()">1/x</button>
+                <button class="scientific" onclick="calculator.toggleSign()">±</button>
+                <button class="scientific" onclick="calculator.calculateFunction('abs')">|x|</button>
+                <button class="scientific" onclick="calculator.memory('store')">MS</button>
+                <button class="scientific" onclick="calculator.memory('recall')">MR</button>
+                <button class="scientific" onclick="calculator.memory('add')">M+</button>
+                <button class="scientific" onclick="calculator.memory('clear')">MC</button>
+            </div>
+            
+            <!-- Standard Calculator Buttons -->
+            <button class="span-two special" onclick="calculator.clear()">AC</button>
+            <button class="special" onclick="calculator.delete()">DEL</button>
+            <button class="operator" onclick="calculator.chooseOperation('÷')">÷</button>
+            <button onclick="calculator.appendNumber('7')">7</button>
+            <button onclick="calculator.appendNumber('8')">8</button>
+            <button onclick="calculator.appendNumber('9')">9</button>
+            <button class="operator" onclick="calculator.chooseOperation('×')">×</button>
+            <button onclick="calculator.appendNumber('4')">4</button>
+            <button onclick="calculator.appendNumber('5')">5</button>
+            <button onclick="calculator.appendNumber('6')">6</button>
+            <button class="operator" onclick="calculator.chooseOperation('-')">-</button>
+            <button onclick="calculator.appendNumber('1')">1</button>
+            <button onclick="calculator.appendNumber('2')">2</button>
+            <button onclick="calculator.appendNumber('3')">3</button>
+            <button class="operator" onclick="calculator.chooseOperation('+')">+</button>
+            <button onclick="calculator.appendNumber('0')">0</button>
+            <button onclick="calculator.appendNumber('.')">.</button>
+            <button class="span-two equals" onclick="calculator.compute()">=</button>
+        </div>
+    </div>
+    <script>
+        // Mathematical background animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('mathAnimation');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas to full screen
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Mathematical symbols and formulas
+            const symbols = ['π', '∑', '∫', '√', '÷', '×', '+', '-', '=', 'e', 'ln', 'sin', 'cos', 'tan', '∞'];
+            const formulas = ['E=mc²', 'F=ma', 'a²+b²=c²', 'e^(iπ)+1=0', 'f\'(x)', '∫f(x)dx'];
+            
+            // Particles array
+            const particles = [];
+            
+            // Create particles
+            function createParticles(count) {
+                for (let i = 0; i < count; i++) {
+                    const isFormula = Math.random() > 0.7;
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: isFormula ? 14 : 18,
+                        speed: 0.2 + Math.random() * 0.5,
+                        text: isFormula ? 
+                            formulas[Math.floor(Math.random() * formulas.length)] : 
+                            symbols[Math.floor(Math.random() * symbols.length)],
+                        opacity: 0.05 + Math.random() * 0.15,
+                        direction: Math.random() * Math.PI * 2,
+                        isFormula: isFormula,
+                        rotationSpeed: (Math.random() - 0.5) * 0.01,
+                        rotation: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+            
+            // Animation loop
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Update and draw particles
+                particles.forEach(particle => {
+                    // Move particle
+                    particle.x += Math.cos(particle.direction) * particle.speed;
+                    particle.y += Math.sin(particle.direction) * particle.speed;
+                    particle.rotation += particle.rotationSpeed;
+                    
+                    // Wrap around edges
+                    if (particle.x < -50) particle.x = canvas.width + 50;
+                    if (particle.x > canvas.width + 50) particle.x = -50;
+                    if (particle.y < -50) particle.y = canvas.height + 50;
+                    if (particle.y > canvas.height + 50) particle.y = -50;
+                    
+                    // Draw particle
+                    ctx.save();
+                    ctx.translate(particle.x, particle.y);
+                    ctx.rotate(particle.rotation);
+                    ctx.font = `${particle.size}px 'Poppins', sans-serif`;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity})`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(particle.text, 0, 0);
+                    ctx.restore();
+                });
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // Initialize
+            createParticles(40);
+            animate();
+        });
+    </script>
+</body>
+</html>
